@@ -1,0 +1,23 @@
+{
+  "name": "cypress-qa-devnation",
+  "version": "1.0.0",
+  "description": "Projeto de testes E2E com Cypress - DevNation",
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:chrome": "cypress run --browser chrome",
+    "cy:run:firefox": "cypress run --browser firefox",
+    "cy:run:headed": "cypress run --headed"
+  },
+  "keywords": [
+    "cypress",
+    "e2e",
+    "qa",
+    "testing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cypress": "^15.18.0"
+  }
+}
