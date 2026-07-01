@@ -1,0 +1,72 @@
+# Pipeline E2E — Cypress (testes.cy.js)
+# App alvo: https://tacseg-website.vercel.app/ (cypress.config.js)
+# Execução manual: Pipelines → Run pipeline
+
+trigger: none
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: TacSeg-Variaveis
+
+  - name: npm_config_cache
+    value: $(Pipeline.Workspace)/.npm
+
+steps:
+  - task: NodeTool@0
+    displayName: 'Instalar Node.js'
+    inputs:
+      versionSpec: '20.x'
+
+  - task: Cache@2
+    displayName: 'Cache npm'
+    inputs:
+      key: 'npm | "$(Agent.OS)" | package-lock.json'
+      restoreKeys: |
+        npm | "$(Agent.OS)"
+      path: $(npm_config_cache)
+
+  - script: npm ci --cache $(npm_config_cache) --prefer-offline
+    displayName: 'Instalar dependências'
+
+  - script: npx cypress verify
+    displayName: 'Verificar Cypress'
+
+  - script: mkdir -p cypress/results
+    displayName: 'Preparar pasta de relatórios JUnit'
+
+  # Variáveis do Library:
+  # CYPRESS_name
+  # CYPRESS_email
+  # CYPRESS_SIGNUPPASSWORD
+  # CYPRESS_WHATSAPP_PHONE
+  - script: |
+      set -e
+
+      [ -n "$(CYPRESS_name)" ] && export CYPRESS_name="$(CYPRESS_name)"
+      [ -n "$(CYPRESS_email)" ] && export CYPRESS_email="$(CYPRESS_email)"
+      [ -n "$(CYPRESS_WHATSAPP_PHONE)" ] && export CYPRESS_WHATSAPP_PHONE="$(CYPRESS_WHATSAPP_PHONE)"
+
+      if [ -n "$(CYPRESS_SIGNUPPASSWORD)" ]; then
+        export CYPRESS_SIGNUPPASSWORD="$(CYPRESS_SIGNUPPASSWORD)"
+        export CYPRESS_signupPassword="$(CYPRESS_SIGNUPPASSWORD)"
+      fi
+
+      npx cypress run \
+        --spec cypress/e2e/testes.cy.js \
+        --browser chrome \
+        --headless \
+        --reporter cypress-multi-reporters \
+        --reporter-options configFile=reporter-config.json
+    displayName: 'Executar testes E2E (Chrome)'
+
+  - task: PublishTestResults@2
+    displayName: 'Publicar resultados JUnit'
+    condition: always()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'cypress/results/*.xml'
+      mergeTestResults: true
+      testRunTitle: 'Cypress - testes.cy.js'

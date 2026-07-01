@@ -19,5 +19,9 @@
   "license": "MIT",
   "dependencies": {
     "cypress": "^15.18.0"
+  },
+  "devDependencies": {
+    "cypress-multi-reporters": "^2.0.5",
+    "mocha-junit-reporter": "^2.2.1"
   }
 }

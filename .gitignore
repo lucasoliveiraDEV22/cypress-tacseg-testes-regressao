@@ -2,6 +2,7 @@ node_modules/
 cypress/videos/
 cypress/screenshots/
 cypress/downloads/
+cypress/results/
 *.log
 .DS_Store
 .env

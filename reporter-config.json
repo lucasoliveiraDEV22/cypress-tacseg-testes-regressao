@@ -1,0 +1,7 @@
+{
+  "reporterEnabled": "spec, mocha-junit-reporter",
+  "mochaJunitReporterReporterOptions": {
+    "mochaFile": "cypress/results/junit-[hash].xml",
+    "testsuitesTitle": "Cypress E2E - testes.cy.js"
+  }
+}
