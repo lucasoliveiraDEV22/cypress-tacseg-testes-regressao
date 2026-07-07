@@ -1,18 +1,19 @@
-# Pipeline E2E — Cypress (testes.cy.js)
-# App alvo: https://tacseg-website.vercel.app/ (cypress.config.js)
-# Execução manual: Pipelines → Run pipeline
-
 trigger: none
 pr: none
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-22.04'
+
+timeoutInMinutes: 30
 
 variables:
   - group: TacSeg-Variaveis
 
   - name: npm_config_cache
     value: $(Pipeline.Workspace)/.npm
+
+  - name: CYPRESS_CACHE_FOLDER
+    value: $(Pipeline.Workspace)/.cache/Cypress
 
 steps:
   - task: NodeTool@0
@@ -28,6 +29,14 @@ steps:
         npm | "$(Agent.OS)"
       path: $(npm_config_cache)
 
+  - task: Cache@2
+    displayName: 'Cache binário do Cypress'
+    inputs:
+      key: 'cypress | "$(Agent.OS)" | package-lock.json'
+      restoreKeys: |
+        cypress | "$(Agent.OS)"
+      path: $(CYPRESS_CACHE_FOLDER)
+
   - script: npm ci --cache $(npm_config_cache) --prefer-offline
     displayName: 'Instalar dependências'
 
@@ -37,23 +46,7 @@ steps:
   - script: mkdir -p cypress/results
     displayName: 'Preparar pasta de relatórios JUnit'
 
-  # Variáveis do Library:
-  # CYPRESS_name
-  # CYPRESS_email
-  # CYPRESS_SIGNUPPASSWORD
-  # CYPRESS_WHATSAPP_PHONE
   - script: |
-      set -e
-
-      [ -n "$(CYPRESS_name)" ] && export CYPRESS_name="$(CYPRESS_name)"
-      [ -n "$(CYPRESS_email)" ] && export CYPRESS_email="$(CYPRESS_email)"
-      [ -n "$(CYPRESS_WHATSAPP_PHONE)" ] && export CYPRESS_WHATSAPP_PHONE="$(CYPRESS_WHATSAPP_PHONE)"
-
-      if [ -n "$(CYPRESS_SIGNUPPASSWORD)" ]; then
-        export CYPRESS_SIGNUPPASSWORD="$(CYPRESS_SIGNUPPASSWORD)"
-        export CYPRESS_signupPassword="$(CYPRESS_SIGNUPPASSWORD)"
-      fi
-
       npx cypress run \
         --spec cypress/e2e/testes.cy.js \
         --browser chrome \
@@ -61,6 +54,12 @@ steps:
         --reporter cypress-multi-reporters \
         --reporter-options configFile=reporter-config.json
     displayName: 'Executar testes E2E (Chrome)'
+    env:
+      CYPRESS_name: $(CYPRESS_name)
+      CYPRESS_email: $(CYPRESS_email)
+      CYPRESS_WHATSAPP_PHONE: $(CYPRESS_WHATSAPP_PHONE)
+      CYPRESS_SIGNUPPASSWORD: $(CYPRESS_SIGNUPPASSWORD)
+      CYPRESS_signupPassword: $(CYPRESS_SIGNUPPASSWORD)
 
   - task: PublishTestResults@2
     displayName: 'Publicar resultados JUnit'
