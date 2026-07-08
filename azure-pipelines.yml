@@ -4,7 +4,7 @@ pr: none
 pool:
   vmImage: 'ubuntu-22.04'
 
-timeoutInMinutes: 30
+# timeoutInMinutes: 30
 
 variables:
   - group: TacSeg-Variaveis
@@ -59,7 +59,7 @@ steps:
       CYPRESS_email: $(CYPRESS_email)
       CYPRESS_WHATSAPP_PHONE: $(CYPRESS_WHATSAPP_PHONE)
       CYPRESS_SIGNUPPASSWORD: $(CYPRESS_SIGNUPPASSWORD)
-      CYPRESS_signupPassword: $(CYPRESS_SIGNUPPASSWORD)
+     
 
   - task: PublishTestResults@2
     displayName: 'Publicar resultados JUnit'
